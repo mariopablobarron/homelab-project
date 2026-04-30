@@ -182,8 +182,18 @@ actor MaltrailAPIClient {
     }
 
     private func parseEvents(from data: Data) throws -> [MaltrailEvent] {
-        let json = try JSONSerialization.jsonObject(with: data)
-        let rows = eventRows(from: json)
+        if let json = try? JSONSerialization.jsonObject(with: data) {
+            let rows = eventRows(from: json)
+            if !rows.isEmpty {
+                return parseEventRows(rows)
+            }
+        }
+
+        let raw = String(data: data, encoding: .utf8) ?? ""
+        return parseTextEvents(raw)
+    }
+
+    private func parseEventRows(_ rows: [[String: Any]]) -> [MaltrailEvent] {
         return rows.enumerated().map { index, row in
             let raw = row.reduce(into: [String: String]()) { partial, item in
                 if let text = Self.stringValue(item.value), !text.isEmpty {
@@ -205,6 +215,117 @@ actor MaltrailAPIClient {
                 rawFields: raw
             )
         }
+    }
+
+    private func parseTextEvents(_ raw: String) -> [MaltrailEvent] {
+        raw.split(whereSeparator: \.isNewline)
+            .map { String($0).trimmingCharacters(in: .whitespacesAndNewlines) }
+            .filter { !$0.isEmpty }
+            .enumerated()
+            .map { index, line in
+                let parts = splitLogLine(line)
+                guard parts.count >= 10 else {
+                    return MaltrailEvent(
+                        id: "raw-\(index)-\(line.hashValue)",
+                        timestamp: nil,
+                        source: nil,
+                        destination: nil,
+                        protocolName: nil,
+                        trail: nil,
+                        severity: nil,
+                        sensor: nil,
+                        info: line,
+                        rawFields: ["raw": line]
+                    )
+                }
+
+                let hasSplitTimestamp = parts.indices.contains(1)
+                    && parts[0].range(of: #"^\d{4}-\d{2}-\d{2}$"#, options: .regularExpression) != nil
+                    && parts[1].contains(":")
+                let offset = hasSplitTimestamp ? 1 : 0
+                let timestamp = hasSplitTimestamp ? "\(parts[0]) \(parts[1])" : parts[0]
+                let sensor = parts[safe: 1 + offset]
+                let source = parts[safe: 2 + offset]
+                let sourcePort = parts[safe: 3 + offset]
+                let destination = parts[safe: 4 + offset]
+                let destinationPort = parts[safe: 5 + offset]
+                let protocolName = parts[safe: 6 + offset]
+                let trailType = parts[safe: 7 + offset]
+                let trail = parts[safe: 8 + offset]
+                let infoPartsStart = 9 + offset
+                let info = parts.indices.contains(infoPartsStart)
+                    ? parts[infoPartsStart...].joined(separator: " ").nonEmptyValue
+                    : nil
+                let rawFields = [
+                    "timestamp": timestamp,
+                    "sensor": sensor,
+                    "src_ip": source,
+                    "src_port": sourcePort,
+                    "dst_ip": destination,
+                    "dst_port": destinationPort,
+                    "protocol": protocolName,
+                    "type": trailType,
+                    "trail": trail,
+                    "info": info
+                ].compactMapValues { $0?.nonEmptyValue }
+
+                return MaltrailEvent(
+                    id: "\(timestamp)|\(source ?? "")|\(destination ?? "")|\(trail ?? "")|\(index)",
+                    timestamp: timestamp,
+                    source: source,
+                    destination: destination,
+                    protocolName: protocolName,
+                    trail: trail,
+                    severity: inferSeverity(info: info, trailType: trailType),
+                    sensor: sensor,
+                    info: info,
+                    rawFields: rawFields
+                )
+            }
+    }
+
+    private func splitLogLine(_ line: String) -> [String] {
+        var result: [String] = []
+        var current = ""
+        var inQuotes = false
+        var escaping = false
+
+        for character in line {
+            if escaping {
+                current.append(character)
+                escaping = false
+            } else if character == "\\" && inQuotes {
+                escaping = true
+            } else if character == "\"" {
+                inQuotes.toggle()
+            } else if character.isWhitespace && !inQuotes {
+                if !current.isEmpty {
+                    result.append(current)
+                    current.removeAll(keepingCapacity: true)
+                }
+            } else {
+                current.append(character)
+            }
+        }
+
+        if !current.isEmpty {
+            result.append(current)
+        }
+        return result
+    }
+
+    private func inferSeverity(info: String?, trailType: String?) -> String? {
+        let value = "\(info ?? "") \(trailType ?? "")".lowercased()
+        if value.contains("malware") || value.contains("ransom") || value.contains("trojan") {
+            return "high"
+        }
+        if value.contains("malicious") || value.contains("attack") || value.contains("scanner") {
+            return "medium"
+        }
+        if value.contains("suspicious") {
+            return "low"
+        }
+        return nil
     }
 
     private func eventRows(from json: Any) -> [[String: Any]] {
@@ -406,5 +527,18 @@ actor MaltrailAPIClient {
             return apiError
         }
         return .custom(error.localizedDescription)
+    }
+}
+
+private extension Array {
+    subscript(safe index: Int) -> Element? {
+        indices.contains(index) ? self[index] : nil
+    }
+}
+
+private extension String {
+    var nonEmptyValue: String? {
+        let trimmed = trimmingCharacters(in: .whitespacesAndNewlines)
+        return trimmed.isEmpty ? nil : trimmed
     }
 }

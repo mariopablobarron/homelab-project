@@ -1,6 +1,7 @@
 package com.homelab.app.data.remote.api
 
 import kotlinx.serialization.json.JsonElement
+import okhttp3.ResponseBody
 import retrofit2.http.GET
 import retrofit2.http.Header
 import retrofit2.http.Query
@@ -18,5 +19,5 @@ interface MaltrailApi {
         @Header("X-Homelab-Service") service: String = "Maltrail",
         @Header("X-Homelab-Instance-Id") instanceId: String,
         @Query("date") date: String
-    ): JsonElement
+    ): ResponseBody
 }

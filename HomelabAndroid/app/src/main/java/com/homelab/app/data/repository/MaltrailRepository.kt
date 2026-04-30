@@ -15,6 +15,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonNull
@@ -34,7 +35,7 @@ data class MaltrailCountPoint(
 ) {
     val apiDate: String
         get() = Instant.ofEpochSecond(timestamp)
-            .atZone(ZoneOffset.UTC)
+            .atZone(ZoneId.systemDefault())
             .toLocalDate()
             .format(DateTimeFormatter.ISO_LOCAL_DATE)
 
@@ -149,7 +150,7 @@ class MaltrailRepository @Inject constructor(
     }
 
     suspend fun getEvents(instanceId: String, date: String): List<MaltrailEvent> {
-        return parseEvents(api.getEvents(instanceId = instanceId, date = date))
+        return parseEvents(api.getEvents(instanceId = instanceId, date = date).string())
     }
 
     suspend fun getSummary(instanceId: String): MaltrailSummary {
@@ -236,6 +237,11 @@ class MaltrailRepository @Inject constructor(
         }.sortedByDescending { it.timestamp }
     }
 
+    private fun parseEvents(raw: String): List<MaltrailEvent> {
+        val jsonEvents = runCatching { parseEvents(Json.parseToJsonElement(raw)) }.getOrDefault(emptyList())
+        return jsonEvents.ifEmpty { parseTextEvents(raw) }
+    }
+
     private fun parseEvents(element: JsonElement): List<MaltrailEvent> {
         return extractObjectArray(element, "events", "data", "items", "results").mapIndexed { index, obj ->
             val raw = obj.toFlatStringMap()
@@ -260,6 +266,109 @@ class MaltrailRepository @Inject constructor(
                 info = info,
                 rawFields = raw
             )
+        }
+    }
+
+    private fun parseTextEvents(raw: String): List<MaltrailEvent> {
+        return raw.lineSequence()
+            .map { it.trim() }
+            .filter { it.isNotBlank() }
+            .mapIndexedNotNull { index, line ->
+                val parts = splitLogLine(line)
+                if (parts.size < 10) {
+                    return@mapIndexedNotNull MaltrailEvent(
+                        id = "raw-$index-${line.hashCode()}",
+                        timestamp = null,
+                        source = null,
+                        destination = null,
+                        protocolName = null,
+                        trail = null,
+                        severity = null,
+                        sensor = null,
+                        info = line,
+                        rawFields = mapOf("raw" to line)
+                    )
+                }
+
+                val hasSplitTimestamp = parts.getOrNull(0)?.matches(Regex("\\d{4}-\\d{2}-\\d{2}")) == true &&
+                    parts.getOrNull(1)?.contains(":") == true
+                val offset = if (hasSplitTimestamp) 1 else 0
+                val timestamp = if (hasSplitTimestamp) "${parts[0]} ${parts[1]}" else parts[0]
+                val sensor = parts.getOrNull(1 + offset)
+                val source = parts.getOrNull(2 + offset)
+                val sourcePort = parts.getOrNull(3 + offset)
+                val destination = parts.getOrNull(4 + offset)
+                val destinationPort = parts.getOrNull(5 + offset)
+                val protocol = parts.getOrNull(6 + offset)
+                val trailType = parts.getOrNull(7 + offset)
+                val trail = parts.getOrNull(8 + offset)
+                val info = parts.drop(9 + offset).joinToString(" ").ifBlank { null }
+                val rawFields = linkedMapOf(
+                    "timestamp" to timestamp,
+                    "sensor" to sensor,
+                    "src_ip" to source,
+                    "src_port" to sourcePort,
+                    "dst_ip" to destination,
+                    "dst_port" to destinationPort,
+                    "protocol" to protocol,
+                    "type" to trailType,
+                    "trail" to trail,
+                    "info" to info
+                ).mapNotNull { (key, value) -> value?.takeIf { it.isNotBlank() }?.let { key to it } }.toMap()
+
+                MaltrailEvent(
+                    id = "$timestamp|$source|$destination|$trail|$index",
+                    timestamp = timestamp,
+                    source = source,
+                    destination = destination,
+                    protocolName = protocol,
+                    trail = trail,
+                    severity = inferSeverity(info, trailType),
+                    sensor = sensor,
+                    info = info,
+                    rawFields = rawFields
+                )
+            }
+            .toList()
+    }
+
+    private fun splitLogLine(line: String): List<String> {
+        val result = mutableListOf<String>()
+        val current = StringBuilder()
+        var inQuotes = false
+        var escaping = false
+
+        for (char in line) {
+            when {
+                escaping -> {
+                    current.append(char)
+                    escaping = false
+                }
+                char == '\\' && inQuotes -> escaping = true
+                char == '"' -> inQuotes = !inQuotes
+                char.isWhitespace() && !inQuotes -> {
+                    if (current.isNotEmpty()) {
+                        result += current.toString()
+                        current.clear()
+                    }
+                }
+                else -> current.append(char)
+            }
+        }
+
+        if (current.isNotEmpty()) {
+            result += current.toString()
+        }
+        return result
+    }
+
+    private fun inferSeverity(info: String?, trailType: String?): String? {
+        val value = "${info.orEmpty()} ${trailType.orEmpty()}".lowercase(Locale.ROOT)
+        return when {
+            "malware" in value || "ransom" in value || "trojan" in value -> "high"
+            "malicious" in value || "attack" in value || "scanner" in value -> "medium"
+            "suspicious" in value -> "low"
+            else -> null
         }
     }
 
