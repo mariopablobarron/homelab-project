@@ -1,6 +1,6 @@
 {
-  "latest": "1.5.3",
-  "ios_url": "https://github.com/JohnnWi/homelab-project/releases/download/v1.5.3/Homelab.ipa",
-  "android_url": "https://github.com/JohnnWi/homelab-project/releases/download/v1.5.3/Homelab.apk",
-  "changelog": "Improved Maltrail event parsing across iOS and Android.\nAdded compatibility for text-based Maltrail event responses.\nIncluded date and event handling fixes for more reliable Maltrail data."
+  "latest": "1.5.4",
+  "ios_url": "https://github.com/JohnnWi/homelab-project/releases/download/v1.5.4/Homelab.ipa",
+  "android_url": "https://github.com/JohnnWi/homelab-project/releases/download/v1.5.4/Homelab.apk",
+  "changelog": "Improved Dockhand session recovery across iOS and Android.\nAdded automatic re-authentication and retry handling for Dockhand requests.\nIncluded additional stability fixes for Dockhand and related request flows."
 }

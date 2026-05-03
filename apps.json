@@ -27,6 +27,15 @@
       ],
       "versions": [
         {
+          "version": "1.5.4",
+          "buildVersion": "35",
+          "date": "2026-05-03",
+          "localizedDescription": "Improved Dockhand session recovery across iOS and Android.\nAdded automatic re-authentication and retry handling for Dockhand requests.\nIncluded additional stability fixes for Dockhand and related request flows.",
+          "downloadURL": "https://github.com/JohnnWi/homelab-project/releases/download/v1.5.4/Homelab.ipa",
+          "size": 33420087,
+          "minOSVersion": "26.0"
+        },
+        {
           "version": "1.5.3",
           "buildVersion": "34",
           "date": "2026-04-30",
@@ -297,6 +306,16 @@
     }
   ],
   "news": [
+    {
+      "title": "v1.5.4 — Improved Dockhand session recovery across iOS and Android.",
+      "identifier": "release-1.5.4",
+      "caption": "Improved Dockhand session recovery across iOS and Android. Added automatic re-authentication and retry handling for Dockhand requests. Included additional stability fixes for Dockhand and related request flows.",
+      "date": "2026-05-03",
+      "tintColor": "#4A90D9",
+      "notify": true,
+      "url": "https://github.com/JohnnWi/homelab-project/releases/tag/v1.5.4",
+      "appID": "homelab.foreverhomelab"
+    },
     {
       "title": "v1.5.3 — Improved Maltrail event parsing across iOS and Android.",
       "identifier": "release-1.5.3",
