@@ -1,6 +1,7 @@
 package com.homelab.app.data.remote
 
 import com.homelab.app.data.repository.BeszelRepository
+import com.homelab.app.data.repository.DockhandRepository
 import com.homelab.app.data.repository.MaltrailRepository
 import com.homelab.app.data.repository.NginxProxyManagerRepository
 import com.homelab.app.data.repository.ProxmoxRepository
@@ -19,6 +20,7 @@ class AuthInterceptor @Inject constructor(
     private val globalEventBus: GlobalEventBus,
     private val serviceInstancesRepository: ServiceInstancesRepository,
     private val beszelRepository: dagger.Lazy<BeszelRepository>,
+    private val dockhandRepository: dagger.Lazy<DockhandRepository>,
     private val maltrailRepository: dagger.Lazy<MaltrailRepository>,
     private val nginxProxyManagerRepository: dagger.Lazy<NginxProxyManagerRepository>,
     private val proxmoxRepository: dagger.Lazy<ProxmoxRepository>
@@ -160,6 +162,39 @@ class AuthInterceptor @Inject constructor(
                         url = effectiveInstance.url,
                         username = effectiveInstance.username.orEmpty(),
                         password = effectiveInstance.password.orEmpty(),
+                        fallbackUrl = effectiveInstance.fallbackUrl,
+                        allowSelfSigned = effectiveInstance.allowSelfSigned
+                    )
+                }.takeIf { it.isNotBlank() }
+            } catch (_: Exception) { null }
+
+            if (newCookie != null) {
+                runBlocking {
+                    serviceInstancesRepository.saveInstance(effectiveInstance.copy(token = newCookie))
+                }
+
+                response.close()
+                val retryBuilder = request.newBuilder()
+                    .removeHeader("Cookie")
+                    .addHeader("Cookie", newCookie)
+                return chain.proceed(retryBuilder.build())
+            }
+        }
+
+        if (effectiveInstance != null &&
+            effectiveInstance.type == ServiceType.DOCKHAND &&
+            response.code in setOf(401, 403) &&
+            bypassHeader != "true" &&
+            !effectiveInstance.username.isNullOrBlank() &&
+            !effectiveInstance.password.isNullOrBlank()
+        ) {
+            val newCookie = try {
+                runBlocking {
+                    dockhandRepository.get().authenticate(
+                        url = effectiveInstance.url,
+                        username = effectiveInstance.username.orEmpty(),
+                        password = effectiveInstance.password.orEmpty(),
+                        mfaCode = "",
                         fallbackUrl = effectiveInstance.fallbackUrl,
                         allowSelfSigned = effectiveInstance.allowSelfSigned
                     )

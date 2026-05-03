@@ -1601,14 +1601,101 @@ actor DockhandAPIClient {
             headers["Accept"] = "application/json"
         }
 
-        return try await engine.requestData(
-            baseURL: baseURL,
-            fallbackURL: fallbackURL,
-            path: path,
-            method: method,
-            headers: headers,
-            body: body
-        )
+        do {
+            let data = try await engine.requestData(
+                baseURL: baseURL,
+                fallbackURL: fallbackURL,
+                path: path,
+                method: method,
+                headers: headers,
+                body: body
+            )
+            guard shouldReauthenticate(from: data),
+                  let refreshedCookie = try await refreshSessionCookieIfPossible() else {
+                return data
+            }
+
+            headers["Cookie"] = refreshedCookie
+            return try await engine.requestData(
+                baseURL: baseURL,
+                fallbackURL: fallbackURL,
+                path: path,
+                method: method,
+                headers: headers,
+                body: body
+            )
+        } catch {
+            guard shouldReauthenticate(after: error),
+                  let refreshedCookie = try await refreshSessionCookieIfPossible() else {
+                throw error
+            }
+
+            headers["Cookie"] = refreshedCookie
+            return try await engine.requestData(
+                baseURL: baseURL,
+                fallbackURL: fallbackURL,
+                path: path,
+                method: method,
+                headers: headers,
+                body: body
+            )
+        }
+    }
+
+    private func shouldReauthenticate(after error: Error) -> Bool {
+        if case APIError.unauthorized = error {
+            return true
+        }
+        if case APIError.httpError(let statusCode, _) = error, [401, 403].contains(statusCode) {
+            return true
+        }
+        if case APIError.bothURLsFailed(let primary, let fallback) = error {
+            return shouldReauthenticate(after: primary) || shouldReauthenticate(after: fallback)
+        }
+        return false
+    }
+
+    private func shouldReauthenticate(from data: Data) -> Bool {
+        if let root = DockhandJSON.object(from: data) {
+            let message = DockhandJSON.firstNonEmpty([
+                DockhandJSON.string(root["error"]),
+                DockhandJSON.string(root["message"]),
+                DockhandJSON.string(root["status"])
+            ]).lowercased()
+            return message.contains("unauthorized") ||
+                message.contains("forbidden") ||
+                message.contains("login")
+        }
+
+        guard let text = String(data: data, encoding: .utf8)?
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .lowercased(),
+              !text.isEmpty else {
+            return false
+        }
+
+        return text.hasPrefix("<!doctype") ||
+            text.hasPrefix("<html") ||
+            (text.contains("<form") && text.contains("login"))
+    }
+
+    private func refreshSessionCookieIfPossible() async throws -> String? {
+        guard !username.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
+              !storedPassword.isEmpty else {
+            return nil
+        }
+
+        let refreshed = try await authenticate(
+            url: baseURL,
+            username: username,
+            password: storedPassword,
+            mfaCode: "",
+            fallbackUrl: fallbackURL
+        ).trimmingCharacters(in: .whitespacesAndNewlines)
+
+        guard !refreshed.isEmpty else { return nil }
+        sessionCookie = refreshed
+        return refreshed
     }
 
     private func findStackObject(name: String, environmentId: String?) async throws -> [String: Any]? {

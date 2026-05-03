@@ -3,8 +3,10 @@ package com.homelab.app.data.repository
 import android.net.Uri
 import com.homelab.app.data.remote.api.DockhandApi
 import com.homelab.app.data.remote.TlsClientSelector
+import com.homelab.app.util.ServiceType
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
@@ -16,6 +18,7 @@ import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.booleanOrNull
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.doubleOrNull
@@ -25,6 +28,7 @@ import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.Response
+import retrofit2.HttpException
 
 enum class DockhandContainerFilter {
     ALL,
@@ -155,7 +159,8 @@ data class DockhandActionResult(
 @Singleton
 class DockhandRepository @Inject constructor(
     private val api: DockhandApi,
-    private val tlsClientSelector: TlsClientSelector
+    private val tlsClientSelector: TlsClientSelector,
+    private val serviceInstancesRepository: ServiceInstancesRepository
 ) {
 
     suspend fun authenticate(
@@ -188,7 +193,20 @@ class DockhandRepository @Inject constructor(
         throw lastError ?: IllegalStateException("Dockhand authentication failed")
     }
 
-    suspend fun getDashboard(instanceId: String, env: String?): DockhandDashboardData = coroutineScope {
+    suspend fun getDashboard(instanceId: String, env: String?): DockhandDashboardData {
+        return try {
+            loadDashboard(instanceId, env)
+        } catch (error: Throwable) {
+            if (error is CancellationException) throw error
+            if (shouldRetryAfterDockhandAuthFailure(error) && refreshStoredSessionCookie(instanceId)) {
+                loadDashboard(instanceId, env)
+            } else {
+                throw error
+            }
+        }
+    }
+
+    private suspend fun loadDashboard(instanceId: String, env: String?): DockhandDashboardData = coroutineScope {
         val normalizedEnv = normalizeEnvironmentId(env)
         val environments = runCatching {
             parseEnvironments(api.getEnvironments(instanceId = instanceId))
@@ -258,6 +276,49 @@ class DockhandRepository @Inject constructor(
         )
     }
 
+    private fun shouldRetryAfterDockhandAuthFailure(error: Throwable): Boolean {
+        if (error is HttpException && error.code() in setOf(401, 403)) {
+            return true
+        }
+        if (error is SerializationException) {
+            return true
+        }
+
+        val message = error.message.orEmpty().lowercase()
+        return message.contains("unauthorized") ||
+            message.contains("forbidden") ||
+            message.contains("login") ||
+            message.contains("html") ||
+            message.contains("json")
+    }
+
+    private suspend fun refreshStoredSessionCookie(instanceId: String): Boolean {
+        val instance = serviceInstancesRepository.getInstance(instanceId) ?: return false
+        if (instance.type != ServiceType.DOCKHAND ||
+            instance.username.isNullOrBlank() ||
+            instance.password.isNullOrBlank()
+        ) {
+            return false
+        }
+
+        val refreshed = try {
+            authenticate(
+                url = instance.url,
+                username = instance.username.orEmpty(),
+                password = instance.password.orEmpty(),
+                mfaCode = "",
+                fallbackUrl = instance.fallbackUrl,
+                allowSelfSigned = instance.allowSelfSigned
+            ).trim()
+        } catch (_: Exception) {
+            return false
+        }
+
+        if (refreshed.isBlank()) return false
+        serviceInstancesRepository.saveInstance(instance.copy(token = refreshed))
+        return true
+    }
+
     private fun resolveScopes(env: String?, environments: List<DockhandEnvironment>): List<String?> {
         if (!env.isNullOrBlank()) return listOf(env)
         return listOf(null)
@@ -269,19 +330,29 @@ class DockhandRepository @Inject constructor(
         fallbackScopes: List<String?> = emptyList()
     ): List<DockhandContainer> {
         val merged = linkedMapOf<String, DockhandContainer>()
+        var lastError: Throwable? = null
         for (scope in scopes) {
-            val items = runCatching {
+            val items = try {
                 parseContainers(api.getContainers(instanceId = instanceId, env = scope), scope)
-            }.getOrDefault(emptyList())
+            } catch (error: Throwable) {
+                lastError = error
+                emptyList()
+            }
             items.forEach { merged["${it.environmentId.orEmpty()}|${it.id}"] = it }
         }
         if (merged.isEmpty() && fallbackScopes.isNotEmpty()) {
             for (scope in fallbackScopes) {
-                val fallback = runCatching {
+                val fallback = try {
                     parseContainers(api.getContainers(instanceId = instanceId, env = scope), scope)
-                }.getOrDefault(emptyList())
+                } catch (error: Throwable) {
+                    lastError = error
+                    emptyList()
+                }
                 fallback.forEach { merged["${it.environmentId.orEmpty()}|${it.id}"] = it }
             }
+        }
+        if (merged.isEmpty() && lastError != null) {
+            throw lastError ?: IllegalStateException("Dockhand containers request failed")
         }
         return merged.values.sortedBy { it.name.lowercase() }
     }
