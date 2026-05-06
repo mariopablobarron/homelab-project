@@ -1,6 +1,6 @@
 {
-  "latest": "1.6.0",
-  "ios_url": "https://github.com/JohnnWi/homelab-project/releases/download/v1.6.0/Homelab.ipa",
-  "android_url": "https://github.com/JohnnWi/homelab-project/releases/download/v1.6.0/Homelab.apk",
-  "changelog": "Added TrueNAS Scale support.\nAdded TrueNAS Core support.\nImproved Beszel integration and reliability.\nIncluded backup, login, and service catalog updates for the new TrueNAS dashboard."
+  "latest": "1.6.1",
+  "ios_url": "https://github.com/JohnnWi/homelab-project/releases/download/v1.6.1/Homelab.ipa",
+  "android_url": "https://github.com/JohnnWi/homelab-project/releases/download/v1.6.1/Homelab.apk",
+  "changelog": "Improved UniFi URL normalization across iOS and Android.\nAdded more reliable UniFi site validation and login handling.\nIncluded localization and service configuration fixes for the UniFi integration."
 }

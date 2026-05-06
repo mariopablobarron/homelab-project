@@ -27,6 +27,15 @@
       ],
       "versions": [
         {
+          "version": "1.6.1",
+          "buildVersion": "37",
+          "date": "2026-05-06",
+          "localizedDescription": "Improved UniFi URL normalization across iOS and Android.\nAdded more reliable UniFi site validation and login handling.\nIncluded localization and service configuration fixes for the UniFi integration.",
+          "downloadURL": "https://github.com/JohnnWi/homelab-project/releases/download/v1.6.1/Homelab.ipa",
+          "size": 33531064,
+          "minOSVersion": "26.0"
+        },
+        {
           "version": "1.6.0",
           "buildVersion": "36",
           "date": "2026-05-06",
@@ -315,6 +324,16 @@
     }
   ],
   "news": [
+    {
+      "title": "v1.6.1 — Improved UniFi URL normalization across iOS and Android.",
+      "identifier": "release-1.6.1",
+      "caption": "Improved UniFi URL normalization across iOS and Android. Added more reliable UniFi site validation and login handling. Included localization and service configuration fixes for the UniFi integration.",
+      "date": "2026-05-06",
+      "tintColor": "#4A90D9",
+      "notify": true,
+      "url": "https://github.com/JohnnWi/homelab-project/releases/tag/v1.6.1",
+      "appID": "homelab.foreverhomelab"
+    },
     {
       "title": "v1.6.0 — Added TrueNAS Scale support.",
       "identifier": "release-1.6.0",
