@@ -758,16 +758,23 @@ actor DockhandAPIClient {
         let detailData = try await requestData(path: envPath("/api/containers/\(id)", env: environmentId))
         let rootObject = DockhandJSON.object(from: detailData) ?? [:]
         let detailObject = normalizePrimaryObject(rootObject, preferredKeys: ["container", "item", "data"])
-        let container = parseContainer(detailObject, environmentId: environmentId) ?? parseContainer(rootObject, environmentId: environmentId) ?? DockhandContainerInfo(
-            id: id,
-            name: id,
-            image: "-",
-            state: "unknown",
-            status: "unknown",
-            portsSummary: "-",
-            health: nil,
-            environmentId: environmentId
-        )
+        let container: DockhandContainerInfo
+        if let parsed = parseContainer(detailObject, environmentId: environmentId) {
+            container = parsed
+        } else if let parsed = parseContainer(rootObject, environmentId: environmentId) {
+            container = parsed
+        } else {
+            container = DockhandContainerInfo(
+                id: id,
+                name: id,
+                image: "-",
+                state: "unknown",
+                status: "unknown",
+                portsSummary: "-",
+                health: nil,
+                environmentId: environmentId
+            )
+        }
 
         let detailPairs = compactDetails(
             detailObject,
