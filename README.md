@@ -11,7 +11,7 @@ Homelab Dashboard is a fully native mobile app for monitoring and managing a sel
 
 ## 💝 Support the App Store Launch
 
-A GoFundMe campaign has been launched to raise €100 to publish the iOS app on the App Store. Every contribution helps.
+A GoFundMe campaign has been launched to raise €100 only to cover the Apple Developer Program account and the App Store publication costs for the iOS app. Every contribution helps make an official App Store release possible.
 
 **[→ Donate on GoFundMe](https://gofund.me/25ff55d40)**
 
