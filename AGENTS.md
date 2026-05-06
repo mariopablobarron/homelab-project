@@ -4,11 +4,19 @@ This repository is the single working copy for Homelab development.
 
 ## Repository Flow
 
-- Work from `/Users/andreacip/Coding/homelab-project`.
+- Work from this repository root only.
 - `origin` is the primary GitHub remote.
 - `gitea` is an optional mirror remote only.
-- Do not use `/Users/andreacip/Coding/Homelab` for new work.
+- Do not use the old Gitea working copy for new work.
 - Keep `main` tracking `origin/main`.
+
+## Branch Strategy
+
+- Use `main` for normal owner-directed changes, release preparation, and release follow-up commits.
+- Create a short-lived branch for larger/riskier work, external PR review, or changes that should not block release work.
+- Prefer branch names like `feat/service-name`, `fix/issue-name`, `docs/topic`, or `ci/topic`.
+- Use a separate git worktree only when another uncommitted task is already in progress and switching branches would risk mixing changes.
+- Do not merge or close external PRs without reviewing the diff and running the relevant checks.
 
 ## Development Rules
 
@@ -30,8 +38,8 @@ This repository is the single working copy for Homelab development.
 Android compile check:
 
 ```bash
-cd /Users/andreacip/Coding/homelab-project/HomelabAndroid
-GRADLE_USER_HOME=/Users/andreacip/Coding/homelab-project/HomelabAndroid/.gradle-home \
+cd HomelabAndroid
+GRADLE_USER_HOME="$PWD/.gradle-home" \
 JAVA_HOME=$(/usr/libexec/java_home -v 21) \
 ./gradlew :app:compileDebugKotlin --console=plain
 ```
@@ -39,7 +47,7 @@ JAVA_HOME=$(/usr/libexec/java_home -v 21) \
 iOS compile check without launching simulators:
 
 ```bash
-cd /Users/andreacip/Coding/homelab-project/HomelabSwift
+cd HomelabSwift
 xcodebuild build \
   -project Homelab.xcodeproj \
   -scheme Homelab \
@@ -49,6 +57,31 @@ xcodebuild build \
   -derivedDataPath /private/tmp/homelab-ios-dd \
   CODE_SIGNING_ALLOWED=NO
 ```
+
+## Test Checks
+
+Android unit tests:
+
+```bash
+cd HomelabAndroid
+GRADLE_USER_HOME="$PWD/.gradle-home" \
+JAVA_HOME=$(/usr/libexec/java_home -v 21) \
+./gradlew :app:testDebugUnitTest --console=plain
+```
+
+iOS unit tests require an available iOS simulator:
+
+```bash
+cd HomelabSwift
+xcodebuild test \
+  -project Homelab.xcodeproj \
+  -scheme Homelab \
+  -configuration Debug \
+  -destination 'platform=iOS Simulator,name=iPhone 17' \
+  -derivedDataPath /private/tmp/homelab-ios-test
+```
+
+If the exact simulator is unavailable, list devices with `xcrun simctl list devices available` and adjust the destination.
 
 ## Release Flow
 
@@ -72,5 +105,4 @@ xcodebuild build \
 ## Platform Notes
 
 - SideStore and AltStore Classic/World are supported through the IPA source.
-- AltStore PAL in the EU requires Apple-notarized marketplace apps and a `marketplaceID`; the current IPA source is not a PAL marketplace source.
 - Keep README wording specific: use "AltStore Classic / SideStore" when discussing sideloading.
