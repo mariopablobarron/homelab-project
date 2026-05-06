@@ -1168,10 +1168,11 @@ actor GenericAPIClient {
 
         if let images = row["images"] as? [[String: Any]] {
             for image in images {
-                let candidate = stringValue(image["remoteUrl"])
-                    ?? stringValue(image["url"])
-                    ?? stringValue(image["src"])
-                    ?? stringValue(image["link"])
+                let remoteURL = stringValue(image["remoteUrl"])
+                let localURL = stringValue(image["url"])
+                let sourceURL = stringValue(image["src"])
+                let linkURL = stringValue(image["link"])
+                let candidate = remoteURL ?? localURL ?? sourceURL ?? linkURL
                 if let resolved = toAbsoluteURL(candidate) {
                     return resolved
                 }
