@@ -336,9 +336,13 @@ For help, bug reports, compatibility issues, or App Store support requests, use 
 
 ## 💖 Funding
 
-This project is a solo effort maintained by a university student. If you find it useful and want to support the project:
+This project is a solo effort maintained by a university student.
+
+The GoFundMe campaign is dedicated only to covering the Apple Developer Program account and App Store publication costs:
 
 **[→ Donate on GoFundMe](https://gofund.me/25ff55d40)**
+
+Crypto donations are optional, unrestricted donations to support the project and its maintenance:
 
 **EVM Wallet (Ethereum, BSC, Polygon, etc.)**  
 `0x649641868e6876c2c1f04584a95679e01c1aaf0d`
