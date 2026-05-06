@@ -50,7 +50,7 @@
     <string name="service_proxmox_desc">Virtual infrastructure management</string>
     <string name="service_unifi_network">Ubiquiti Network</string>
     <string name="service_unifi_network_desc">UniFi sites, devices, clients and network health</string>
-    <string name="login_hint_unifi_network">Use a UniFi API key. For cloud access use https://api.ui.com; for local gateway access use your console URL and enable Network API integrations.</string>
+    <string name="login_hint_unifi_network">Use a UniFi API key. For cloud access use https://api.ui.com. For a Dream Machine or local gateway use the console base URL, such as https://192.168.1.1, and enable Network API integrations.</string>
     <string name="unifi_devices">Devices</string>
     <string name="unifi_clients">Clients</string>
     <string name="unifi_sites">Sites</string>

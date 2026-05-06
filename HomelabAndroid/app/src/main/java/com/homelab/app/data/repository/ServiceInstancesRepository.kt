@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
+import java.net.URI
 import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -131,9 +132,10 @@ class ServiceInstancesRepository @Inject constructor(
         if (entities.isEmpty()) return
 
         val normalized = entities.map { entity ->
-            val normalizedType = ServiceType.fromStoredName(entity.type).name
-            val normalizedUrl = normalizeUrl(entity.url)
-            val normalizedFallback = normalizeOptionalUrl(entity.fallbackUrl)
+            val serviceType = ServiceType.fromStoredName(entity.type)
+            val normalizedType = serviceType.name
+            val normalizedUrl = normalizeUrl(entity.url, serviceType)
+            val normalizedFallback = normalizeOptionalUrl(entity.fallbackUrl, serviceType)
             if (
                 normalizedType == entity.type &&
                 normalizedUrl == entity.url &&
@@ -206,26 +208,44 @@ private fun ServiceInstance.toEntity(): ServiceInstanceEntity {
     )
 }
 
-private fun normalizeUrl(raw: String): String {
+private fun normalizeUrl(raw: String, type: ServiceType? = null): String {
     var clean = raw.trim()
     clean = clean.trimEnd { it == ')' || it == ']' || it == '}' || it == ',' || it == ';' }
     if (!clean.startsWith("http://") && !clean.startsWith("https://")) {
         clean = "https://$clean"
     }
-    return clean.replace(Regex("/+$"), "")
+    clean = clean.replace(Regex("/+$"), "")
+    return if (type == ServiceType.UNIFI_NETWORK) stripKnownUnifiApiPath(clean) else clean
 }
 
-private fun normalizeOptionalUrl(raw: String?): String? {
+private fun normalizeOptionalUrl(raw: String?, type: ServiceType? = null): String? {
     if (raw.isNullOrBlank()) return null
-    val normalized = normalizeUrl(raw)
+    val normalized = normalizeUrl(raw, type)
     return normalized.ifBlank { null }
 }
 
 private fun normalizeInstance(instance: ServiceInstance): ServiceInstance {
-    val normalizedUrl = normalizeUrl(instance.url)
-    val normalizedFallback = normalizeOptionalUrl(instance.fallbackUrl)
+    val normalizedUrl = normalizeUrl(instance.url, instance.type)
+    val normalizedFallback = normalizeOptionalUrl(instance.fallbackUrl, instance.type)
     if (normalizedUrl == instance.url && normalizedFallback == instance.fallbackUrl) {
         return instance
     }
     return instance.copy(url = normalizedUrl, fallbackUrl = normalizedFallback)
+}
+
+private fun stripKnownUnifiApiPath(raw: String): String {
+    return runCatching {
+        val uri = URI(raw)
+        val path = uri.rawPath.orEmpty()
+        if (!isKnownUnifiApiPath(path)) return@runCatching raw
+        URI(uri.scheme, uri.userInfo, uri.host, uri.port, null, null, null).toString()
+    }.getOrDefault(raw)
+}
+
+private fun isKnownUnifiApiPath(path: String): Boolean {
+    val normalized = path.trimEnd('/')
+    return normalized == "/proxy/network/integration/v1" ||
+        normalized.startsWith("/proxy/network/integration/v1/") ||
+        normalized == "/v1" ||
+        normalized.startsWith("/v1/")
 }

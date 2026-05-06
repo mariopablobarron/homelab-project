@@ -38,7 +38,7 @@
     <string name="service_wakapi_desc">Suivi d\'activité de codage</string>
     <string name="service_unifi_network">Ubiquiti Network</string>
     <string name="service_unifi_network_desc">Sites UniFi, appareils, clients et santé réseau</string>
-    <string name="login_hint_unifi_network">Utilisez une clé API UniFi. Pour le cloud utilisez https://api.ui.com ; pour l\'accès local utilisez l\'URL de la console et activez les intégrations Network API.</string>
+    <string name="login_hint_unifi_network">Utilisez une clé API UniFi. Pour le cloud utilisez https://api.ui.com. Pour une Dream Machine ou une passerelle locale, utilisez l\'URL de base de la console, par exemple https://192.168.1.1, et activez les intégrations Network API.</string>
     <string name="unifi_devices">Appareils</string>
     <string name="unifi_clients">Clients</string>
     <string name="unifi_sites">Sites</string>

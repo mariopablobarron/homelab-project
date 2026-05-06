@@ -19,6 +19,7 @@ import kotlinx.serialization.json.doubleOrNull
 import kotlinx.serialization.json.intOrNull
 import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.put
+import java.net.URI
 import java.time.Instant
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -196,25 +197,27 @@ class UnifiRepository @Inject constructor(
 
         var lastError: Exception? = null
         for (baseUrl in candidates) {
-            try {
-                val path = if (mode == UnifiAuthMode.SITE_MANAGER) {
-                    "/v1/sites?pageSize=1"
-                } else {
-                    "/proxy/network/integration/v1/sites"
+            val paths = if (mode == UnifiAuthMode.SITE_MANAGER) {
+                listOf("/v1/sites?pageSize=1")
+            } else {
+                listOf("/proxy/network/integration/v1/sites?pageSize=1", "/v1/sites?pageSize=1")
+            }
+            for (path in paths) {
+                try {
+                    val response = api.getJson(
+                        url = absoluteUrl(baseUrl, path),
+                        bypass = "true",
+                        allowSelfSigned = allowSelfSigned.toString(),
+                        apiKey = apiKey
+                    )
+                    if (response.objectArray().isEmpty()) {
+                        // Empty deployments are valid, but a non-JSON or unauthorized response is not.
+                        response.unwrapData()
+                    }
+                    return
+                } catch (error: Exception) {
+                    lastError = error
                 }
-                val response = api.getJson(
-                    url = absoluteUrl(baseUrl, path),
-                    bypass = "true",
-                    allowSelfSigned = allowSelfSigned.toString(),
-                    apiKey = apiKey
-                )
-                if (response.objectArray().isEmpty()) {
-                    // Empty deployments are valid, but a non-JSON or unauthorized response is not.
-                    response.unwrapData()
-                }
-                return
-            } catch (error: Exception) {
-                lastError = error
             }
         }
         throw lastError ?: IllegalStateException("UniFi validation failed.")
@@ -621,7 +624,8 @@ class UnifiRepository @Inject constructor(
     private fun cleanUrl(raw: String): String {
         var clean = raw.trim()
         if (!clean.startsWith("http://") && !clean.startsWith("https://")) clean = "https://$clean"
-        return clean.replace(Regex("/+$"), "")
+        clean = clean.replace(Regex("/+$"), "")
+        return stripKnownApiPath(clean)
     }
 
     private fun cleanOptionalUrl(raw: String?): String? {
@@ -631,6 +635,23 @@ class UnifiRepository @Inject constructor(
 
     private fun absoluteUrl(baseUrl: String, path: String): String {
         return cleanUrl(baseUrl) + "/" + path.trimStart('/')
+    }
+
+    private fun stripKnownApiPath(raw: String): String {
+        return runCatching {
+            val uri = URI(raw)
+            val path = uri.rawPath.orEmpty()
+            if (!isKnownApiPath(path)) return@runCatching raw
+            URI(uri.scheme, uri.userInfo, uri.host, uri.port, null, null, null).toString()
+        }.getOrDefault(raw)
+    }
+
+    private fun isKnownApiPath(path: String): Boolean {
+        val normalized = path.trimEnd('/')
+        return normalized == "/proxy/network/integration/v1" ||
+            normalized.startsWith("/proxy/network/integration/v1/") ||
+            normalized == "/v1" ||
+            normalized.startsWith("/v1/")
     }
 
     private fun String.encodePath(): String = java.net.URLEncoder.encode(this, Charsets.UTF_8.name()).replace("+", "%20")

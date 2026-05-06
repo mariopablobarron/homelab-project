@@ -1328,7 +1328,7 @@ final class ServicesStore {
 
     // MARK: - URL Normalization
 
-    private func normalizeServiceURL(_ raw: String) -> String {
+    private func normalizeServiceURL(_ raw: String, type: ServiceType? = nil) -> String {
         var clean = raw.trimmingCharacters(in: .whitespacesAndNewlines)
         let trailing = CharacterSet(charactersIn: ")]},;")
         while let last = clean.unicodeScalars.last, trailing.contains(last) {
@@ -1337,18 +1337,19 @@ final class ServicesStore {
         if !clean.hasPrefix("http://") && !clean.hasPrefix("https://") {
             clean = "https://" + clean
         }
-        return clean.replacingOccurrences(of: "/+$", with: "", options: .regularExpression)
+        clean = clean.replacingOccurrences(of: "/+$", with: "", options: .regularExpression)
+        return type == .unifiNetwork ? stripKnownUniFiAPIPath(from: clean) : clean
     }
 
-    private func normalizeOptionalURL(_ raw: String?) -> String? {
+    private func normalizeOptionalURL(_ raw: String?, type: ServiceType? = nil) -> String? {
         guard let raw else { return nil }
-        let normalized = normalizeServiceURL(raw)
+        let normalized = normalizeServiceURL(raw, type: type)
         return normalized.isEmpty ? nil : normalized
     }
 
     private func normalizedInstance(_ instance: ServiceInstance) -> ServiceInstance {
-        let normalizedUrl = normalizeServiceURL(instance.url)
-        let normalizedFallback = normalizeOptionalURL(instance.fallbackUrl)
+        let normalizedUrl = normalizeServiceURL(instance.url, type: instance.type)
+        let normalizedFallback = normalizeOptionalURL(instance.fallbackUrl, type: instance.type)
         if normalizedUrl == instance.url && normalizedFallback == instance.fallbackUrl {
             return instance
         }
@@ -1357,5 +1358,27 @@ final class ServicesStore {
             fallbackUrl: normalizedFallback,
             allowSelfSigned: instance.allowSelfSigned
         )
+    }
+
+    private func stripKnownUniFiAPIPath(from raw: String) -> String {
+        guard var components = URLComponents(string: raw) else {
+            return raw
+        }
+        let path = components.percentEncodedPath
+        guard !path.isEmpty, isKnownUniFiAPIPath(path) else {
+            return raw
+        }
+        components.percentEncodedPath = ""
+        components.percentEncodedQuery = nil
+        components.fragment = nil
+        return components.string ?? raw
+    }
+
+    private func isKnownUniFiAPIPath(_ path: String) -> Bool {
+        let normalized = path.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+        return normalized == "proxy/network/integration/v1" ||
+            normalized.hasPrefix("proxy/network/integration/v1/") ||
+            normalized == "v1" ||
+            normalized.hasPrefix("v1/")
     }
 }

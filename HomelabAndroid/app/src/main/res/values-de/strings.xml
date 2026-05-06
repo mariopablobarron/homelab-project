@@ -38,7 +38,7 @@
     <string name="service_wakapi_desc">Aktivitäts-Tracker für die Programmierung</string>
     <string name="service_unifi_network">Ubiquiti Network</string>
     <string name="service_unifi_network_desc">UniFi-Standorte, Geräte, Clients und Netzwerkzustand</string>
-    <string name="login_hint_unifi_network">Verwenden Sie einen UniFi-API-Schlüssel. Für Cloud-Zugriff nutzen Sie https://api.ui.com; für lokalen Gateway-Zugriff die Konsolen-URL und Network-API-Integrationen.</string>
+    <string name="login_hint_unifi_network">Verwenden Sie einen UniFi-API-Schlüssel. Für Cloud-Zugriff nutzen Sie https://api.ui.com. Für eine Dream Machine oder ein lokales Gateway verwenden Sie die Basis-URL der Konsole, z. B. https://192.168.1.1, und aktivieren Sie Network-API-Integrationen.</string>
     <string name="unifi_devices">Geräte</string>
     <string name="unifi_clients">Clients</string>
     <string name="unifi_sites">Standorte</string>

@@ -1080,9 +1080,10 @@ actor UniFiAPIClient {
     }
 
     private static func cleanURL(_ value: String) -> String {
-        value
+        let clean = value
             .trimmingCharacters(in: .whitespacesAndNewlines)
             .replacingOccurrences(of: "/+$", with: "", options: .regularExpression)
+        return stripKnownAPIPath(from: clean)
     }
 
     private static func localNetworkPathCandidates(_ path: String) -> [String] {
@@ -1097,6 +1098,28 @@ actor UniFiAPIClient {
         var allowed = CharacterSet.urlPathAllowed
         allowed.remove(charactersIn: "/?#[]@!$&'()*+,;=")
         return value.addingPercentEncoding(withAllowedCharacters: allowed) ?? value
+    }
+
+    private static func stripKnownAPIPath(from raw: String) -> String {
+        guard var components = URLComponents(string: raw) else {
+            return raw
+        }
+        let path = components.percentEncodedPath
+        guard !path.isEmpty, isKnownAPIPath(path) else {
+            return raw
+        }
+        components.percentEncodedPath = ""
+        components.percentEncodedQuery = nil
+        components.fragment = nil
+        return components.string ?? raw
+    }
+
+    private static func isKnownAPIPath(_ path: String) -> Bool {
+        let normalized = path.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+        return normalized == "proxy/network/integration/v1" ||
+            normalized.hasPrefix("proxy/network/integration/v1/") ||
+            normalized == "v1" ||
+            normalized.hasPrefix("v1/")
     }
 }
 

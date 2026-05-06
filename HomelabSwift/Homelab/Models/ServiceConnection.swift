@@ -150,7 +150,7 @@ struct ServiceInstance: Codable, Identifiable, Equatable, Hashable {
         self.id = id
         self.type = type
         self.label = label.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? type.displayName : label.trimmingCharacters(in: .whitespacesAndNewlines)
-        self.url = Self.cleanURL(url)
+        self.url = type == .unifiNetwork ? Self.cleanUniFiURL(url) : Self.cleanURL(url)
         self.token = token
         self.username = username?.trimmedNilIfEmpty
         self.apiKey = apiKey?.trimmedNilIfEmpty
@@ -160,7 +160,7 @@ struct ServiceInstance: Codable, Identifiable, Equatable, Hashable {
         self.proxmoxRealm = proxmoxRealm?.trimmedNilIfEmpty
         self.proxmoxOTP = proxmoxOTP?.trimmedNilIfEmpty
         self.unifiAuthMode = unifiAuthMode
-        self.fallbackUrl = Self.cleanOptionalURL(fallbackUrl)
+        self.fallbackUrl = type == .unifiNetwork ? Self.cleanOptionalUniFiURL(fallbackUrl) : Self.cleanOptionalURL(fallbackUrl)
         self.allowSelfSigned = allowSelfSigned
         self.password = password?.trimmedNilIfEmpty
     }
@@ -243,10 +243,43 @@ struct ServiceInstance: Codable, Identifiable, Equatable, Hashable {
             .replacingOccurrences(of: "/+$", with: "", options: .regularExpression)
     }
 
+    private static func cleanUniFiURL(_ value: String) -> String {
+        stripKnownUniFiAPIPath(from: cleanURL(value))
+    }
+
     private static func cleanOptionalURL(_ value: String?) -> String? {
         guard let value else { return nil }
         let cleaned = cleanURL(value)
         return cleaned.isEmpty ? nil : cleaned
+    }
+
+    private static func cleanOptionalUniFiURL(_ value: String?) -> String? {
+        guard let value else { return nil }
+        let cleaned = cleanUniFiURL(value)
+        return cleaned.isEmpty ? nil : cleaned
+    }
+
+    private static func stripKnownUniFiAPIPath(from raw: String) -> String {
+        guard var components = URLComponents(string: raw) else {
+            return raw
+        }
+        let path = components.percentEncodedPath
+        guard !path.isEmpty, isKnownUniFiAPIPath(path)
+        else {
+            return raw
+        }
+        components.percentEncodedPath = ""
+        components.percentEncodedQuery = nil
+        components.fragment = nil
+        return components.string ?? raw
+    }
+
+    private static func isKnownUniFiAPIPath(_ path: String) -> Bool {
+        let normalized = path.trimmingCharacters(in: CharacterSet(charactersIn: "/"))
+        return normalized == "proxy/network/integration/v1" ||
+            normalized.hasPrefix("proxy/network/integration/v1/") ||
+            normalized == "v1" ||
+            normalized.hasPrefix("v1/")
     }
 
     enum CodingKeys: String, CodingKey {

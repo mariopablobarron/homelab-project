@@ -39,6 +39,7 @@ import com.homelab.app.util.ErrorHandler
 import com.homelab.app.util.ServiceType
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
+import java.net.URI
 import java.util.UUID
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -784,8 +785,25 @@ class ServiceLoginViewModel @Inject constructor(
         return if (lowered.contains("unifi.ui.com") || lowered.contains("api.ui.com")) {
             "https://api.ui.com"
         } else {
-            url
+            stripKnownUnifiApiPath(url)
         }
+    }
+
+    private fun stripKnownUnifiApiPath(raw: String): String {
+        return runCatching {
+            val uri = URI(raw)
+            val path = uri.rawPath.orEmpty()
+            if (!isKnownUnifiApiPath(path)) return@runCatching raw
+            URI(uri.scheme, uri.userInfo, uri.host, uri.port, null, null, null).toString()
+        }.getOrDefault(raw)
+    }
+
+    private fun isKnownUnifiApiPath(path: String): Boolean {
+        val normalized = path.trimEnd('/')
+        return normalized == "/proxy/network/integration/v1" ||
+            normalized.startsWith("/proxy/network/integration/v1/") ||
+            normalized == "/v1" ||
+            normalized.startsWith("/v1/")
     }
 
     fun clearError() {

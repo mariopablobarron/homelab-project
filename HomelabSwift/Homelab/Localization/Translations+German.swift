@@ -97,7 +97,7 @@ extension Translations {
         serviceWakapiDesc: "Codierungsaktivitäts-Tracker",
         serviceCraftyControllerDesc: "Kontrollzentrum für Minecraft-Server",
         serviceUnifiNetworkDesc: "Ubiquiti-Network-Status, Geraete und Clients",
-        loginHintUnifiNetwork: "Verwende einen API-Schluessel fuer Ubiquiti Network. Site Manager nutzt https://api.ui.com; Local Network nutzt die URL deiner UniFi-Konsole und den Network-API-Schluessel aus Settings > Control Plane > Integrations.",
+        loginHintUnifiNetwork: "Verwende einen API-Schluessel fuer Ubiquiti Network. Site Manager nutzt https://api.ui.com. Local Network nutzt die Basis-URL der Konsole, z. B. https://192.168.1.1, und den Network-API-Schluessel aus Settings > Control Plane > Integrations.",
         unifiAuthMode: "API-Modus",
         unifiSiteManager: "Site Manager",
         unifiLocalNetwork: "Lokales Netzwerk",
