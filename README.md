@@ -7,15 +7,26 @@
 [![Made with SwiftUI](https://img.shields.io/badge/Made%20with-SwiftUI-blue.svg?logo=swift)](https://developer.apple.com/xcode/swiftui/)
 [![Made with Jetpack Compose](https://img.shields.io/badge/Made%20with-Jetpack%20Compose-green.svg?logo=jetpackcompose)](https://developer.android.com/jetpack/compose)
 
+Homelab Dashboard is a fully native mobile app for monitoring and managing a self-hosted homelab from one place. The project ships two dedicated apps, one for iOS and one for Android, designed around the same product idea while respecting each platform's native UI patterns.
+
+## 🔗 Official Links
+
+| Resource | Link |
+|---|---|
+| Privacy Policy | [johnnwi.github.io/homelab-project/privacy.html](https://johnnwi.github.io/homelab-project/privacy.html) |
+| Support | [johnnwi.github.io/homelab-project/support.html](https://johnnwi.github.io/homelab-project/support.html) |
+| Releases | [github.com/JohnnWi/homelab-project/releases](https://github.com/JohnnWi/homelab-project/releases) |
+| AltStore / SideStore Source | [apps.json](https://raw.githubusercontent.com/JohnnWi/homelab-project/main/apps.json) |
+
+---
+
 ## 💝 Support the App Store Launch
 
-A GoFundMe campaign has been launched to raise €100 to publish the iOS app on the App Store. Every contribution helps!
+A GoFundMe campaign has been launched to raise €100 to publish the iOS app on the App Store. Every contribution helps.
 
 **[→ Donate on GoFundMe](https://gofund.me/25ff55d40)**
 
 ---
-
-Homelab Dashboard is a fully native mobile app for monitoring and managing a self-hosted homelab from one place. The project ships two dedicated apps, one for iOS and one for Android, designed around the same product idea while respecting each platform's native UI patterns.
 
 > **Disclaimer:** This is a vibe-coding project built for fun and personal use. It is provided as-is with no guarantees. The author assumes no responsibility for any issues, data loss, or damages resulting from the use of this software.
 
@@ -303,6 +314,13 @@ The app can then be refreshed and updated from the same source.
 
 ## 🛠️ Getting Started
 
+### Repository Layout
+
+- `HomelabSwift/`: native iOS app built with SwiftUI.
+- `HomelabAndroid/`: native Android app built with Kotlin and Jetpack Compose.
+- `docs/`: public privacy and support pages served through GitHub Pages.
+- `apps.json` and `app-version.json`: update metadata used by the AltStore / SideStore source and in-app update banner.
+
 ### Build for iOS
 
 1. Open `HomelabSwift/Homelab.xcodeproj` in Xcode 26+.
@@ -317,9 +335,21 @@ The app can then be refreshed and updated from the same source.
 
 ---
 
-## 💖 Project & Support
+## 🧭 Support & Privacy
+
+For help, bug reports, compatibility issues, or App Store support requests, use the public support page or GitHub Issues:
+
+- **Support:** [johnnwi.github.io/homelab-project/support.html](https://johnnwi.github.io/homelab-project/support.html)
+- **Privacy Policy:** [johnnwi.github.io/homelab-project/privacy.html](https://johnnwi.github.io/homelab-project/privacy.html)
+- **Issues:** [github.com/JohnnWi/homelab-project/issues](https://github.com/JohnnWi/homelab-project/issues)
+
+---
+
+## 💖 Funding
 
 This project is a solo effort maintained by a university student. If you find it useful and want to support the project:
+
+**[→ Donate on GoFundMe](https://gofund.me/25ff55d40)**
 
 **EVM Wallet (Ethereum, BSC, Polygon, etc.)**  
 `0x649641868e6876c2c1f04584a95679e01c1aaf0d`
