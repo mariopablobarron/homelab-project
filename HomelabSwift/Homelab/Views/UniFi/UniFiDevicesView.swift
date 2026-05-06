@@ -850,16 +850,15 @@ struct UniFiDeviceDetailSheet: View {
     }
 
     private var infoCard: some View {
-        let rows: [(String, String)] = [
-            ("IP", device.ipAddress ?? "—"),
-            ("MAC", device.macAddress ?? "—"),
-            ("Model", device.model ?? "—"),
-            ("Firmware", device.firmwareVersion ?? device.version ?? "—"),
-            ("Serial", device.serialNumber ?? "—"),
-            ("Status", device.state?.capitalized ?? "—"),
-            ("Uplink", device.uplinkDeviceName ?? "—"),
-            (localizer.t.unifiSites, siteName ?? device.siteId ?? "—")
-        ].filter { $0.1 != "—" }
+        var rows: [(String, String)] = []
+        appendInfoRow("IP", device.ipAddress, to: &rows)
+        appendInfoRow("MAC", device.macAddress, to: &rows)
+        appendInfoRow("Model", device.model, to: &rows)
+        appendInfoRow("Firmware", device.firmwareVersion ?? device.version, to: &rows)
+        appendInfoRow("Serial", device.serialNumber, to: &rows)
+        appendInfoRow("Status", device.state?.capitalized, to: &rows)
+        appendInfoRow("Uplink", device.uplinkDeviceName, to: &rows)
+        appendInfoRow(localizer.t.unifiSites, siteName ?? device.siteId, to: &rows)
 
         return VStack(spacing: 0) {
             ForEach(Array(rows.enumerated()), id: \.offset) { idx, row in
@@ -882,6 +881,11 @@ struct UniFiDeviceDetailSheet: View {
             }
         }
         .background(Color(.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+    }
+
+    private func appendInfoRow(_ title: String, _ value: String?, to rows: inout [(String, String)]) {
+        guard let value, !value.isEmpty else { return }
+        rows.append((title, value))
     }
 
     private func portSubtitle(_ port: UniFiDevicePort) -> String {
