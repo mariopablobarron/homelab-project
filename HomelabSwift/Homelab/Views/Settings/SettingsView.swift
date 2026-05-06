@@ -9,7 +9,6 @@ struct SettingsView: View {
     @Environment(SettingsStore.self) private var settingsStore
     @Environment(Localizer.self) private var localizer
 
-    @State private var showCopiedToast = false
     @State private var showDisableSecurityAlert = false
     @State private var showChangePinFlow = false
     @State private var changePinStep: ChangePinStep = .currentPin
@@ -21,8 +20,6 @@ struct SettingsView: View {
     @State private var showDebugAuthPin = false
     @State private var debugAuthPin = ""
     @State private var debugAuthError: String? = nil
-    private let cryptoAddress = "0x649641868e6876c2c1f04584a95679e01c1aaf0d"
-
     var body: some View {
         NavigationStack {
             ZStack {
@@ -40,7 +37,6 @@ struct SettingsView: View {
                             .padding(.top, 8)
 
                             updateBannerSection
-                            donationSection
                             servicesSection
                             themeSection
                             appIconSection
@@ -102,58 +98,9 @@ struct SettingsView: View {
         } message: {
             Text(debugAuthError ?? localizer.t.debugLogsAuthMessage)
         }
-        .overlay(alignment: .bottom) {
-            if showCopiedToast {
-                ToastView(message: localizer.t.settingsCopied)
-                    .transition(.move(edge: .bottom).combined(with: .opacity))
-                    .onAppear {
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-                            withAnimation { showCopiedToast = false }
-                        }
-                    }
-            }
-        }
     }
 
     // MARK: - Sections
-
-    private var donationSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text(localizer.t.settingsSupportTitle)
-                .font(.headline)
-                .fontWeight(.bold)
-                .foregroundStyle(AppTheme.accent)
-
-            Text(localizer.t.settingsSupportDesc)
-                .font(.footnote)
-                .foregroundStyle(.secondary)
-                .lineSpacing(2)
-
-            Button {
-                UIPasteboard.general.string = cryptoAddress
-                HapticManager.medium()
-                withAnimation { showCopiedToast = true }
-            } label: {
-                HStack {
-                    let masked = cryptoAddress.prefix(8) + "..." + cryptoAddress.suffix(6)
-                    Text(masked)
-                        .font(.system(.subheadline, design: .monospaced))
-                        .foregroundStyle(AppTheme.accent)
-                    Spacer()
-                    Text(localizer.t.copy.sentenceCased())
-                        .font(.caption)
-                        .fontWeight(.bold)
-                        .foregroundStyle(AppTheme.accent)
-                }
-                .padding(12)
-                .background(Color(.systemBackground))
-                .clipShape(RoundedRectangle(cornerRadius: 12))
-            }
-            .buttonStyle(.plain)
-        }
-        .padding(16)
-        .glassCard(tint: AppTheme.accent.opacity(0.1))
-    }
 
     @ViewBuilder
     private var updateBannerSection: some View {

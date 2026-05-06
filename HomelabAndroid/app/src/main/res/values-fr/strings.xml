@@ -245,9 +245,6 @@
 
     <!-- Settings Screen -->
     <string name="settings_title">Paramètres</string>
-    <string name="settings_support_title">Soutenir le projet ❤️</string>
-    <string name="settings_support_desc">Cette application compagnon est fièrement Open Source et développée pendant mon temps libre, et je suis étudiant, donc si vous l\'avez trouvée utile, j\'accepte volontiers les dons (toute crypto sur la chaîne EVM convient) à l\'adresse suivante :</string>
-    <string name="settings_donation_clip_label">Adresse de don Homelab</string>
     <string name="settings_theme_label">Thème</string>
     <string name="settings_theme_light">Clair</string>
     <string name="settings_theme_dark">Sombre</string>

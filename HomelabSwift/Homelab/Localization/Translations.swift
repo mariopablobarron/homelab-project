@@ -983,8 +983,6 @@ struct Translations {
     let settingsConnected: String
     let settingsNotConnected: String
     let settingsFallbackUrl: String
-    let settingsSupportTitle: String
-    let settingsSupportDesc: String
     let settingsCopied: String
     let settingsThemeAuto: String
     let settingsAppIcon: String

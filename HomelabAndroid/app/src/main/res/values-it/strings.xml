@@ -252,9 +252,6 @@
 
     <!-- Settings Screen -->
     <string name="settings_title">Impostazioni</string>
-    <string name="settings_support_title">Supporta il Progetto ❤️</string>
-    <string name="settings_support_desc">Questa companion app è orgogliosamente Open Source e sviluppata nel mio tempo libero, e sono uno studente, quindi se ti è tornata utile accetto volentieri donazioni (qualsiasi crypto su chain EVM va bene) al seguente indirizzo:</string>
-    <string name="settings_donation_clip_label">Indirizzo donazione Homelab</string>
     <string name="settings_theme_label">Tema</string>
     <string name="settings_theme_light">Chiaro</string>
     <string name="settings_theme_dark">Scuro</string>

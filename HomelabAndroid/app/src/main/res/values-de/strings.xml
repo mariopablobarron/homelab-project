@@ -245,9 +245,6 @@
 
     <!-- Settings Screen -->
     <string name="settings_title">Einstellungen</string>
-    <string name="settings_support_title">Unterstütze das Projekt ❤️</string>
-    <string name="settings_support_desc">Diese Begleit-App ist stolz Open Source und wurde in meiner Freizeit entwickelt, und ich bin Student, daher nehme ich gerne Spenden an, wenn Sie sie nützlich fanden (jede Krypto auf der EVM-Chain ist in Ordnung) unter der folgenden Adresse:</string>
-    <string name="settings_donation_clip_label">Homelab-Spendenadresse</string>
     <string name="settings_theme_label">Theme</string>
     <string name="settings_theme_light">Hell</string>
     <string name="settings_theme_dark">Dunkel</string>
