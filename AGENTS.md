@@ -26,12 +26,22 @@ This repository is the single working copy for Homelab development.
   - `docs: ...`
   - `ci: ...`
   - `chore: ...`
-- Before committing app changes, verify at least the affected platform compiles.
 - For release-bound changes, update both platform versions together:
   - Android: `HomelabAndroid/app/build.gradle.kts`
   - iOS: `HomelabSwift/Homelab/Info.plist`
 - Keep Android `versionCode` and iOS `CFBundleVersion` aligned.
 - Keep Android `versionName` and iOS `CFBundleShortVersionString` aligned.
+- Do not commit generated release binaries (`.ipa`, `.apk`, `.aab`) unless explicitly requested.
+
+## Verification Policy
+
+- Run local checks based on the files touched; do not run every build for every change by default.
+- Docs-only changes (`README.md`, `AGENTS.md`, license, markdown, screenshots) do not require local Android or iOS builds.
+- Android-only code/resources require the Android compile check; run Android unit tests when logic, networking, parsing, storage, or ViewModels change.
+- iOS-only code/resources require the iOS compile check; run iOS unit tests when logic, networking, parsing, storage, or model behavior changes.
+- Cross-platform service changes, shared release metadata, or version bumps require both Android and iOS compile checks.
+- Release publishing with user-provided signed `Homelab.ipa` and `Homelab.apk` does not require rebuilding locally unless source code changed in the same task.
+- After pushing to `main`, always inspect the GitHub Actions `CI` run. The task is not complete if CI fails.
 
 ## Build Checks
 
