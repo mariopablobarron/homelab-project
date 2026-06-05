@@ -1,3 +1,8 @@
+# A message from the developer
+Hi everyone, thanks for these past few months—it’s been great. However, for a variety of strictly personal reasons, I can no longer continue developing the app as my life is changing. I’ve contacted Apple several times to figure out what’s wrong, since there are no error messages, but they’ve never responded (I’ll try to find a solution). That said, this repo will remain active in archive mode.
+
+
+
 # 🏠 Homelab Dashboard
 
 [![Swift](https://img.shields.io/badge/Swift-6.0-orange.svg?logo=swift)](https://swift.org)
