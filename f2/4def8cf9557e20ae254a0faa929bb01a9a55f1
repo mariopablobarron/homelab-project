@@ -1,0 +1,19 @@
+.github/workflows/connectors.yml
+  s_e12dc2d76853b8::t_ca635e3d8c8dc0 21-22
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.3",
+  "base_commit_sha": "f24def8cf9557e20ae254a0faa929bb01a9a55f1",
+  "prompts": {},
+  "sessions": {
+    "s_e12dc2d76853b8": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019de621-0b7b-7022-92fb-1c2b0a8df0a0",
+        "model": "gpt-5.5"
+      },
+      "human_author": "mariopablobarron <mariopablobarron@users.noreply.github.com>"
+    }
+  }
+}
