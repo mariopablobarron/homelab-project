@@ -1,0 +1,117 @@
+{
+  "schemaVersion": 1,
+  "id": "pihole",
+  "displayName": "Pi-hole",
+  "description": "DNS blocking overview, query metrics, and temporary disable controls.",
+  "category": "networking",
+  "icon": {
+    "selfhstSlug": "pi-hole"
+  },
+  "baseUrl": {
+    "placeholder": "https://pihole.example.com",
+    "defaultPort": 80,
+    "allowSelfSignedTls": true
+  },
+  "auth": {
+    "type": "api_key",
+    "queryParam": "auth",
+    "credentialFields": [
+      {
+        "key": "apiToken",
+        "label": "API token",
+        "secret": true,
+        "required": true
+      }
+    ],
+    "notes": "Use the web password token from Pi-hole settings. Prefer VPN/Tailscale access instead of public exposure."
+  },
+  "capabilities": {
+    "read": true,
+    "write": true,
+    "destructiveActions": false
+  },
+  "endpoints": [
+    {
+      "id": "summary",
+      "method": "GET",
+      "path": "/admin/api.php?summaryRaw",
+      "purpose": "Read dashboard summary counters.",
+      "risk": "read"
+    },
+    {
+      "id": "top-items",
+      "method": "GET",
+      "path": "/admin/api.php?topItems",
+      "purpose": "Read top queried and blocked domains.",
+      "risk": "read"
+    },
+    {
+      "id": "disable",
+      "method": "GET",
+      "path": "/admin/api.php?disable={seconds}",
+      "purpose": "Disable blocking for a limited number of seconds.",
+      "requiresConfirmation": true,
+      "risk": "safe-write"
+    },
+    {
+      "id": "enable",
+      "method": "GET",
+      "path": "/admin/api.php?enable",
+      "purpose": "Enable blocking again.",
+      "requiresConfirmation": true,
+      "risk": "safe-write"
+    }
+  ],
+  "metrics": [
+    {
+      "id": "queries-today",
+      "label": "Queries today",
+      "sourceEndpoint": "summary",
+      "jsonPath": "$.dns_queries_today",
+      "format": "number"
+    },
+    {
+      "id": "ads-blocked-today",
+      "label": "Blocked today",
+      "sourceEndpoint": "summary",
+      "jsonPath": "$.ads_blocked_today",
+      "format": "number"
+    },
+    {
+      "id": "ads-percentage",
+      "label": "Blocked percentage",
+      "sourceEndpoint": "summary",
+      "jsonPath": "$.ads_percentage_today",
+      "format": "percent"
+    }
+  ],
+  "actions": [
+    {
+      "id": "disable-temporarily",
+      "label": "Disable temporarily",
+      "endpointId": "disable",
+      "risk": "safe-write",
+      "confirmationText": "Temporarily disable DNS blocking?"
+    },
+    {
+      "id": "enable",
+      "label": "Enable blocking",
+      "endpointId": "enable",
+      "risk": "safe-write",
+      "confirmationText": "Enable DNS blocking now?"
+    }
+  ],
+  "platforms": {
+    "ios": "supported",
+    "android": "supported"
+  },
+  "compatibility": {
+    "testedVersions": ["5.x"],
+    "notes": "Pi-hole v6 changes parts of the API. Keep version-specific endpoint overrides in native code until the connector runtime supports variants."
+  },
+  "securityNotes": [
+    "Do not expose Pi-hole directly to the public internet.",
+    "Use short disable timers by default.",
+    "Treat the token as a secret and exclude it from exported logs."
+  ]
+}

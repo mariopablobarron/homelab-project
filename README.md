@@ -312,8 +312,26 @@ The app can then be refreshed and updated from the same source.
 
 - `HomelabSwift/`: native iOS app built with SwiftUI.
 - `HomelabAndroid/`: native Android app built with Kotlin and Jetpack Compose.
+- `connectors/`: shared declarative service connector catalog and schema.
 - `docs/`: public privacy and support pages served through GitHub Pages.
 - `apps.json` and `app-version.json`: update metadata used by the AltStore / SideStore source and in-app update banner.
+
+### Declarative Connectors
+
+New service integrations can start as JSON connector definitions before native
+iOS/Android UI work begins. This keeps service metadata, auth requirements,
+metrics, actions, compatibility notes, and security guardrails in one shared
+place.
+
+- Connector guide: [`docs/service-connectors.md`](docs/service-connectors.md)
+- Schema: [`connectors/schema/service-connector.schema.json`](connectors/schema/service-connector.schema.json)
+- Examples: [`connectors/services`](connectors/services)
+
+Validate connector files with:
+
+```bash
+node scripts/validate-connectors.mjs
+```
 
 ### Build for iOS
 

@@ -1,0 +1,117 @@
+{
+  "schemaVersion": 1,
+  "id": "portainer",
+  "displayName": "Portainer",
+  "description": "Container overview, endpoint status, and guarded container actions.",
+  "category": "infrastructure",
+  "icon": {
+    "selfhstSlug": "portainer"
+  },
+  "baseUrl": {
+    "placeholder": "https://portainer.example.com",
+    "defaultPort": 9443,
+    "allowSelfSignedTls": true
+  },
+  "auth": {
+    "type": "bearer_token",
+    "header": "X-API-Key",
+    "credentialFields": [
+      {
+        "key": "apiKey",
+        "label": "API key",
+        "secret": true,
+        "required": true
+      }
+    ],
+    "notes": "Create a scoped API key in Portainer and prefer read-only access when possible."
+  },
+  "capabilities": {
+    "read": true,
+    "write": true,
+    "destructiveActions": true
+  },
+  "endpoints": [
+    {
+      "id": "system-status",
+      "method": "GET",
+      "path": "/api/status",
+      "purpose": "Read Portainer server status and version.",
+      "risk": "read"
+    },
+    {
+      "id": "endpoints",
+      "method": "GET",
+      "path": "/api/endpoints",
+      "purpose": "List configured Docker/Kubernetes environments.",
+      "risk": "read"
+    },
+    {
+      "id": "containers",
+      "method": "GET",
+      "path": "/api/endpoints/{endpointId}/docker/containers/json?all=true",
+      "purpose": "List containers for a selected Docker endpoint.",
+      "risk": "read"
+    },
+    {
+      "id": "restart-container",
+      "method": "POST",
+      "path": "/api/endpoints/{endpointId}/docker/containers/{containerId}/restart",
+      "purpose": "Restart a container.",
+      "requiresConfirmation": true,
+      "risk": "safe-write"
+    },
+    {
+      "id": "remove-container",
+      "method": "DELETE",
+      "path": "/api/endpoints/{endpointId}/docker/containers/{containerId}",
+      "purpose": "Remove a container.",
+      "requiresConfirmation": true,
+      "risk": "destructive"
+    }
+  ],
+  "metrics": [
+    {
+      "id": "endpoint-count",
+      "label": "Endpoints",
+      "sourceEndpoint": "endpoints",
+      "jsonPath": "$.length",
+      "format": "number"
+    },
+    {
+      "id": "container-count",
+      "label": "Containers",
+      "sourceEndpoint": "containers",
+      "jsonPath": "$.length",
+      "format": "number"
+    }
+  ],
+  "actions": [
+    {
+      "id": "restart-container",
+      "label": "Restart container",
+      "endpointId": "restart-container",
+      "risk": "safe-write",
+      "confirmationText": "Restart this container?"
+    },
+    {
+      "id": "remove-container",
+      "label": "Remove container",
+      "endpointId": "remove-container",
+      "risk": "destructive",
+      "confirmationText": "Remove this container permanently?"
+    }
+  ],
+  "platforms": {
+    "ios": "supported",
+    "android": "supported"
+  },
+  "compatibility": {
+    "testedVersions": ["2.x"],
+    "notes": "Portainer API paths can vary slightly by deployment and environment type."
+  },
+  "securityNotes": [
+    "Never store the API key outside Keychain/Keystore.",
+    "Destructive actions must require an explicit confirmation screen.",
+    "Warn users when connecting over plain HTTP."
+  ]
+}

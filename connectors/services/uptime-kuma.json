@@ -1,0 +1,91 @@
+{
+  "schemaVersion": 1,
+  "id": "uptime-kuma",
+  "displayName": "Uptime Kuma",
+  "description": "Monitor availability and incident status for self-hosted services.",
+  "category": "observability",
+  "icon": {
+    "selfhstSlug": "uptime-kuma"
+  },
+  "baseUrl": {
+    "placeholder": "https://status.example.com",
+    "defaultPort": 3001,
+    "allowSelfSignedTls": true
+  },
+  "auth": {
+    "type": "custom",
+    "credentialFields": [
+      {
+        "key": "username",
+        "label": "Username",
+        "secret": false,
+        "required": true
+      },
+      {
+        "key": "password",
+        "label": "Password",
+        "secret": true,
+        "required": true
+      }
+    ],
+    "notes": "Uptime Kuma uses a socket-oriented API. Native runtime adapters should handle login/session state."
+  },
+  "capabilities": {
+    "read": true,
+    "write": false,
+    "destructiveActions": false
+  },
+  "endpoints": [
+    {
+      "id": "socket-login",
+      "method": "POST",
+      "path": "socket.io:login",
+      "purpose": "Authenticate against the socket API.",
+      "risk": "read"
+    },
+    {
+      "id": "monitor-list",
+      "method": "GET",
+      "path": "socket.io:getMonitorList",
+      "purpose": "Read configured monitors and current status.",
+      "risk": "read"
+    },
+    {
+      "id": "heartbeat-list",
+      "method": "GET",
+      "path": "socket.io:heartbeatList",
+      "purpose": "Read recent heartbeat information.",
+      "risk": "read"
+    }
+  ],
+  "metrics": [
+    {
+      "id": "monitor-count",
+      "label": "Monitors",
+      "sourceEndpoint": "monitor-list",
+      "jsonPath": "$.length",
+      "format": "number"
+    },
+    {
+      "id": "down-monitors",
+      "label": "Down monitors",
+      "sourceEndpoint": "monitor-list",
+      "jsonPath": "$[?(@.status==0)].length",
+      "format": "number"
+    }
+  ],
+  "actions": [],
+  "platforms": {
+    "ios": "partial",
+    "android": "partial"
+  },
+  "compatibility": {
+    "testedVersions": ["1.x"],
+    "notes": "Socket endpoints are declarative identifiers, not raw HTTP paths. Platform adapters must translate them."
+  },
+  "securityNotes": [
+    "Prefer read-only monitoring flows.",
+    "Mask monitor URLs in exported diagnostics if they reveal private hostnames.",
+    "Store session data only in platform-secure storage."
+  ]
+}
