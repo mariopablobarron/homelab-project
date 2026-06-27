@@ -1,0 +1,44 @@
+connectors/services/portainer.json
+  s_e12dc2d76853b8::t_2fc205c79a00e5 1-117
+scripts/validate-connectors.mjs
+  s_e12dc2d76853b8::t_3d92ab3577f47c 1-170
+CONTRIBUTING.md
+  s_e12dc2d76853b8::t_63fb4bbd4c9423 1-54
+README.md
+  s_e12dc2d76853b8::t_2257535011d7b7 315,319-334
+  s_62ffa4d9633f9a::t_7bd429b95d7b17 335
+connectors/services/pihole.json
+  s_e12dc2d76853b8::t_fa724e910f4c04 1-117
+connectors/services/uptime-kuma.json
+  s_e12dc2d76853b8::t_f0d8394c2404bf 1-91
+connectors/schema/service-connector.schema.json
+  s_e12dc2d76853b8::t_fa032698145e11 1-270
+docs/service-connectors.md
+  s_e12dc2d76853b8::t_9746b267a3e48f 1-137
+.github/workflows/connectors.yml
+  s_e12dc2d76853b8::t_d746b7aea9ce70 1-24
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.3",
+  "base_commit_sha": "e204e969a8b53e62f6963908ee5fa3de70ac3146",
+  "prompts": {},
+  "sessions": {
+    "s_62ffa4d9633f9a": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019f015f-6ef2-7c20-afcd-664aaef64a67",
+        "model": "gpt-5.5"
+      },
+      "human_author": "mariopablobarron <mariopablobarron@users.noreply.github.com>"
+    },
+    "s_e12dc2d76853b8": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019de621-0b7b-7022-92fb-1c2b0a8df0a0",
+        "model": "gpt-5.5"
+      },
+      "human_author": "mariopablobarron <mariopablobarron@users.noreply.github.com>"
+    }
+  }
+}
