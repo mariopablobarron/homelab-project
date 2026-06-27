@@ -1,0 +1,354 @@
+{
+  "categories": [
+    "infrastructure",
+    "networking",
+    "observability"
+  ],
+  "connectorCount": 3,
+  "connectors": [
+    {
+      "actions": [
+        {
+          "confirmationText": "Temporarily disable DNS blocking?",
+          "endpointId": "disable",
+          "id": "disable-temporarily",
+          "label": "Disable temporarily",
+          "risk": "safe-write"
+        },
+        {
+          "confirmationText": "Enable DNS blocking now?",
+          "endpointId": "enable",
+          "id": "enable",
+          "label": "Enable blocking",
+          "risk": "safe-write"
+        }
+      ],
+      "auth": {
+        "credentialFields": [
+          {
+            "key": "apiToken",
+            "label": "API token",
+            "required": true,
+            "secret": true
+          }
+        ],
+        "notes": "Use the web password token from Pi-hole settings. Prefer VPN/Tailscale access instead of public exposure.",
+        "queryParam": "auth",
+        "type": "api_key"
+      },
+      "baseUrl": {
+        "allowSelfSignedTls": true,
+        "defaultPort": 80,
+        "placeholder": "https://pihole.example.com"
+      },
+      "capabilities": {
+        "destructiveActions": false,
+        "read": true,
+        "write": true
+      },
+      "category": "networking",
+      "compatibility": {
+        "notes": "Pi-hole v6 changes parts of the API. Keep version-specific endpoint overrides in native code until the connector runtime supports variants.",
+        "testedVersions": [
+          "5.x"
+        ]
+      },
+      "description": "DNS blocking overview, query metrics, and temporary disable controls.",
+      "displayName": "Pi-hole",
+      "endpoints": [
+        {
+          "id": "summary",
+          "method": "GET",
+          "path": "/admin/api.php?summaryRaw",
+          "purpose": "Read dashboard summary counters.",
+          "risk": "read"
+        },
+        {
+          "id": "top-items",
+          "method": "GET",
+          "path": "/admin/api.php?topItems",
+          "purpose": "Read top queried and blocked domains.",
+          "risk": "read"
+        },
+        {
+          "id": "disable",
+          "method": "GET",
+          "path": "/admin/api.php?disable={seconds}",
+          "purpose": "Disable blocking for a limited number of seconds.",
+          "requiresConfirmation": true,
+          "risk": "safe-write"
+        },
+        {
+          "id": "enable",
+          "method": "GET",
+          "path": "/admin/api.php?enable",
+          "purpose": "Enable blocking again.",
+          "requiresConfirmation": true,
+          "risk": "safe-write"
+        }
+      ],
+      "icon": {
+        "selfhstSlug": "pi-hole"
+      },
+      "id": "pihole",
+      "metrics": [
+        {
+          "format": "number",
+          "id": "queries-today",
+          "jsonPath": "$.dns_queries_today",
+          "label": "Queries today",
+          "sourceEndpoint": "summary"
+        },
+        {
+          "format": "number",
+          "id": "ads-blocked-today",
+          "jsonPath": "$.ads_blocked_today",
+          "label": "Blocked today",
+          "sourceEndpoint": "summary"
+        },
+        {
+          "format": "percent",
+          "id": "ads-percentage",
+          "jsonPath": "$.ads_percentage_today",
+          "label": "Blocked percentage",
+          "sourceEndpoint": "summary"
+        }
+      ],
+      "platforms": {
+        "android": "supported",
+        "ios": "supported"
+      },
+      "schemaVersion": 1,
+      "securityNotes": [
+        "Do not expose Pi-hole directly to the public internet.",
+        "Use short disable timers by default.",
+        "Treat the token as a secret and exclude it from exported logs."
+      ]
+    },
+    {
+      "actions": [
+        {
+          "confirmationText": "Restart this container?",
+          "endpointId": "restart-container",
+          "id": "restart-container",
+          "label": "Restart container",
+          "risk": "safe-write"
+        },
+        {
+          "confirmationText": "Remove this container permanently?",
+          "endpointId": "remove-container",
+          "id": "remove-container",
+          "label": "Remove container",
+          "risk": "destructive"
+        }
+      ],
+      "auth": {
+        "credentialFields": [
+          {
+            "key": "apiKey",
+            "label": "API key",
+            "required": true,
+            "secret": true
+          }
+        ],
+        "header": "X-API-Key",
+        "notes": "Create a scoped API key in Portainer and prefer read-only access when possible.",
+        "type": "bearer_token"
+      },
+      "baseUrl": {
+        "allowSelfSignedTls": true,
+        "defaultPort": 9443,
+        "placeholder": "https://portainer.example.com"
+      },
+      "capabilities": {
+        "destructiveActions": true,
+        "read": true,
+        "write": true
+      },
+      "category": "infrastructure",
+      "compatibility": {
+        "notes": "Portainer API paths can vary slightly by deployment and environment type.",
+        "testedVersions": [
+          "2.x"
+        ]
+      },
+      "description": "Container overview, endpoint status, and guarded container actions.",
+      "displayName": "Portainer",
+      "endpoints": [
+        {
+          "id": "system-status",
+          "method": "GET",
+          "path": "/api/status",
+          "purpose": "Read Portainer server status and version.",
+          "risk": "read"
+        },
+        {
+          "id": "endpoints",
+          "method": "GET",
+          "path": "/api/endpoints",
+          "purpose": "List configured Docker/Kubernetes environments.",
+          "risk": "read"
+        },
+        {
+          "id": "containers",
+          "method": "GET",
+          "path": "/api/endpoints/{endpointId}/docker/containers/json?all=true",
+          "purpose": "List containers for a selected Docker endpoint.",
+          "risk": "read"
+        },
+        {
+          "id": "restart-container",
+          "method": "POST",
+          "path": "/api/endpoints/{endpointId}/docker/containers/{containerId}/restart",
+          "purpose": "Restart a container.",
+          "requiresConfirmation": true,
+          "risk": "safe-write"
+        },
+        {
+          "id": "remove-container",
+          "method": "DELETE",
+          "path": "/api/endpoints/{endpointId}/docker/containers/{containerId}",
+          "purpose": "Remove a container.",
+          "requiresConfirmation": true,
+          "risk": "destructive"
+        }
+      ],
+      "icon": {
+        "selfhstSlug": "portainer"
+      },
+      "id": "portainer",
+      "metrics": [
+        {
+          "format": "number",
+          "id": "endpoint-count",
+          "jsonPath": "$.length",
+          "label": "Endpoints",
+          "sourceEndpoint": "endpoints"
+        },
+        {
+          "format": "number",
+          "id": "container-count",
+          "jsonPath": "$.length",
+          "label": "Containers",
+          "sourceEndpoint": "containers"
+        }
+      ],
+      "platforms": {
+        "android": "supported",
+        "ios": "supported"
+      },
+      "schemaVersion": 1,
+      "securityNotes": [
+        "Never store the API key outside Keychain/Keystore.",
+        "Destructive actions must require an explicit confirmation screen.",
+        "Warn users when connecting over plain HTTP."
+      ]
+    },
+    {
+      "actions": [],
+      "auth": {
+        "credentialFields": [
+          {
+            "key": "username",
+            "label": "Username",
+            "required": true,
+            "secret": false
+          },
+          {
+            "key": "password",
+            "label": "Password",
+            "required": true,
+            "secret": true
+          }
+        ],
+        "notes": "Uptime Kuma uses a socket-oriented API. Native runtime adapters should handle login/session state.",
+        "type": "custom"
+      },
+      "baseUrl": {
+        "allowSelfSignedTls": true,
+        "defaultPort": 3001,
+        "placeholder": "https://status.example.com"
+      },
+      "capabilities": {
+        "destructiveActions": false,
+        "read": true,
+        "write": false
+      },
+      "category": "observability",
+      "compatibility": {
+        "notes": "Socket endpoints are declarative identifiers, not raw HTTP paths. Platform adapters must translate them.",
+        "testedVersions": [
+          "1.x"
+        ]
+      },
+      "description": "Monitor availability and incident status for self-hosted services.",
+      "displayName": "Uptime Kuma",
+      "endpoints": [
+        {
+          "id": "socket-login",
+          "method": "POST",
+          "path": "socket.io:login",
+          "purpose": "Authenticate against the socket API.",
+          "risk": "read"
+        },
+        {
+          "id": "monitor-list",
+          "method": "GET",
+          "path": "socket.io:getMonitorList",
+          "purpose": "Read configured monitors and current status.",
+          "risk": "read"
+        },
+        {
+          "id": "heartbeat-list",
+          "method": "GET",
+          "path": "socket.io:heartbeatList",
+          "purpose": "Read recent heartbeat information.",
+          "risk": "read"
+        }
+      ],
+      "icon": {
+        "selfhstSlug": "uptime-kuma"
+      },
+      "id": "uptime-kuma",
+      "metrics": [
+        {
+          "format": "number",
+          "id": "monitor-count",
+          "jsonPath": "$.length",
+          "label": "Monitors",
+          "sourceEndpoint": "monitor-list"
+        },
+        {
+          "format": "number",
+          "id": "down-monitors",
+          "jsonPath": "$[?(@.status==0)].length",
+          "label": "Down monitors",
+          "sourceEndpoint": "monitor-list"
+        }
+      ],
+      "platforms": {
+        "android": "partial",
+        "ios": "partial"
+      },
+      "schemaVersion": 1,
+      "securityNotes": [
+        "Prefer read-only monitoring flows.",
+        "Mask monitor URLs in exported diagnostics if they reveal private hostnames.",
+        "Store session data only in platform-secure storage."
+      ]
+    }
+  ],
+  "generatedBy": "scripts/generate-connector-catalog.mjs",
+  "platformSupport": {
+    "android": {
+      "partial": 1,
+      "supported": 2
+    },
+    "ios": {
+      "partial": 1,
+      "supported": 2
+    }
+  },
+  "schemaVersion": 1,
+  "source": "connectors/services/*.json"
+}

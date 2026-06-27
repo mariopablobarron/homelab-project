@@ -5,11 +5,13 @@ on:
     paths:
       - "connectors/**"
       - "scripts/validate-connectors.mjs"
+      - "scripts/generate-connector-catalog.mjs"
       - ".github/workflows/connectors.yml"
   pull_request:
     paths:
       - "connectors/**"
       - "scripts/validate-connectors.mjs"
+      - "scripts/generate-connector-catalog.mjs"
       - ".github/workflows/connectors.yml"
 
 jobs:
@@ -22,3 +24,5 @@ jobs:
           node-version: 22
       - name: Validate connector catalog
         run: node scripts/validate-connectors.mjs
+      - name: Check generated connector catalog
+        run: node scripts/generate-connector-catalog.mjs --check

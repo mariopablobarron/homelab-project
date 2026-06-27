@@ -22,6 +22,7 @@ runtime, generator, or platform adapter can consume.
 
 ```text
 connectors/
+  catalog.json
   schema/
     service-connector.schema.json
   services/
@@ -29,8 +30,23 @@ connectors/
     pihole.json
     uptime-kuma.json
 scripts/
+  generate-connector-catalog.mjs
   validate-connectors.mjs
 ```
+
+## Generated Catalog
+
+`connectors/catalog.json` is the deterministic bundle that apps, websites, or
+generators should consume. It includes the sorted connector definitions plus a
+small summary of available categories and platform support.
+
+Regenerate it after changing any service connector:
+
+```bash
+node scripts/generate-connector-catalog.mjs
+```
+
+CI runs the same script with `--check` so stale catalog changes fail quickly.
 
 ## Connector Shape
 
@@ -98,6 +114,7 @@ Run:
 
 ```bash
 node scripts/validate-connectors.mjs
+node scripts/generate-connector-catalog.mjs --check
 ```
 
 The validator checks:
@@ -118,14 +135,15 @@ The validator checks:
 5. Add `confirmationText` to every action.
 6. Add compatibility notes with the service versions you tested.
 7. Run `node scripts/validate-connectors.mjs`.
-8. In a later PR, wire the connector into iOS and/or Android.
+8. Run `node scripts/generate-connector-catalog.mjs`.
+9. In a later PR, wire the connector into iOS and/or Android.
 
 ## Platform Integration Plan
 
 Recommended next steps:
 
-1. **Catalog import**: load connector metadata into each native app at build
-   time.
+1. **Catalog import**: load `connectors/catalog.json` into each native app at
+   build time.
 2. **Connection form generator**: use `auth.credentialFields` and `baseUrl` to
    render a consistent add-service screen.
 3. **Read-only cards**: use `metrics` to render simple dashboard cards.
