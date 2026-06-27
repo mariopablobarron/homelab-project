@@ -1,0 +1,25 @@
+docs/service-connectors.md
+  s_e12dc2d76853b8::t_2e953415f576ed 25,33,37-50,117,138-139,145-146
+.github/workflows/connectors.yml
+  s_e12dc2d76853b8::t_2e953415f576ed 8,14,27-28
+scripts/generate-connector-catalog.mjs
+  s_e12dc2d76853b8::t_2e953415f576ed 1-83
+connectors/catalog.json
+  s_e12dc2d76853b8::t_6c16574ed7172d 1-354
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.3",
+  "base_commit_sha": "4bf384594dd0e93172be0763b057bc432de62cd1",
+  "prompts": {},
+  "sessions": {
+    "s_e12dc2d76853b8": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019de621-0b7b-7022-92fb-1c2b0a8df0a0",
+        "model": "gpt-5.5"
+      },
+      "human_author": "mariopablobarron <mariopablobarron@users.noreply.github.com>"
+    }
+  }
+}
